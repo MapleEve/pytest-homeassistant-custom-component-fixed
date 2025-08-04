@@ -5,13 +5,28 @@ from setuptools import setup, find_packages
 requirements = [
     "sqlalchemy",
 ]
-with open("requirements_test.txt","r") as f:
+
+# Parse requirements_test.txt more carefully
+with open("requirements_test.txt", "r") as f:
     for line in f:
-        if "txt" not in line and "#" not in line:
-            requirements.append(line)
+        line = line.strip()
+        # Skip empty lines, comments, constraint files, and the EOF redirection
+        if (line and 
+            not line.startswith("#") and 
+            not line.startswith("-r") and 
+            not line.startswith("-c") and
+            not line.startswith("--") and
+            not line.startswith("EOF") and  # Skip EOF redirection
+            "requirements" not in line.lower() and
+            "constraints" not in line.lower() and
+            "< /dev/null" not in line.lower()):
+            
+            # Skip git URLs as they are not valid for install_requires
+            if not line.startswith("git+"):
+                requirements.append(line)
 
 with open("version", "r") as f:
-    __version__ = f.read()
+    __version__ = f.read().strip()
 
 setup(
     author="Matthew Flamm",
